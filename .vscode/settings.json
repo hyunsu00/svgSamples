@@ -4,5 +4,5 @@
 	"html.format.enable": false,
 	"prettier.printWidth": 200,
 	"liveServer.settings.ChromeDebuggingAttachment": true,
-	"liveServer.settings.port": 9090
+	"liveServer.settings.port": 5500
 }

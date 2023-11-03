@@ -1,87 +1,3 @@
-
-const svg = document.querySelector('#svg');
-
-const svgPoint = (elem, x, y) => {
-  const p = svg.createSVGPoint();
-  p.x = x;
-  p.y = y;
-  return p.matrixTransform(elem.getScreenCTM().inverse());
-};
-const drawRect = (e) => {
-	const p = svgPoint(svg, e.clientX, e.clientY);
-	const w = Math.abs(p.x - start.x);
-	const h = Math.abs(p.y - start.y);
-	if (p.x > start.x) {
-		p.x = start.x;
-	}
-
-	if (p.y > start.y) {
-		p.y = start.y;
-	}
-
-	rect.setAttributeNS(null, 'x', p.x);
-	rect.setAttributeNS(null, 'y', p.y);
-	rect.setAttributeNS(null, 'width', w);
-	rect.setAttributeNS(null, 'height', h);
-	svg.appendChild(rect);
-};
-const endDraw = (e) => {
-	svg.removeEventListener('mousemove', drawRect);
-	svg.removeEventListener('mouseup', endDraw);
-};
-
-// mouseEvent
-let isMouseEvent = false;
-let rect = null;
-let start = null;
-function _mousedownEvent(e) {
-	console.log('_mousedownEvent e=', e);
-	isMouseEvent = true;
-
-	rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  start = svgPoint(svg, event.clientX, event.clientY);
-}
-
-function _mousemoveEvent(e) {
-	if (isMouseEvent) {
-		console.log('_mousemoveEvent e=', e);
-
-		drawRect(e);
-	}
-}
-function _mouseupEvent(e) {
-	console.log('_mouseupEvent e=', e);
-	isMouseEvent = false;
-
-	endDraw(e);
-}
-
-// pointerEvent
-let isPointEvent = false;
-function _pointerdownEvent(e) {
-	console.log('_pointerdownEvent e=', e);
-	isPointEvent = true;
-
-	rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  start = svgPoint(svg, event.clientX, event.clientY);
-}
-function _pointermoveEvent(e) {
-	if (isPointEvent) {
-		console.log('_pointermoveEvent e=', e);
-
-		drawRect(e);
-	}
-}
-function _pointerupEvent(e) {
-	console.log('_pointerupEvent e=', e);
-	isPointEvent = false;
-
-	endDraw(e);
-}
-function _pointercancelEvent(e) {
-	console.log('_pointercancelEvent e=', e);
-}
-
 // touchEvent
 let isTouchEvent = false;
 function _touchstartEvent(e) {
@@ -98,16 +14,56 @@ function _touchendEvent(e) {
 	isTouchEvent = false;
 }
 
-window.onload = () => {
-	// document.addEventListener('mousedown', _mousedownEvent);
-	// document.addEventListener('mousemove', _mousemoveEvent);
-	// document.addEventListener('mouseup', _mouseupEvent);
-  
-	document.addEventListener('pointerdown', _pointerdownEvent);
-	document.addEventListener('pointermove', _pointermoveEvent);
-	document.addEventListener('pointerup', _pointerupEvent);
-	document.addEventListener('pointercancel', _pointercancelEvent);
+// const EVENT_DRAW_BEGIN = 'mousedown';
+// const EVENT_DRAW_PROGRESS = 'mousemove';
+// const EVENT_DRAW_END = 'mouseup';
 
+const EVENT_DRAW_BEGIN = 'pointerdown';
+const EVENT_DRAW_PROGRESS = 'pointermove';
+const EVENT_DRAW_END = 'pointerup';
+
+const onDrawBegin = (e) => {	
+	const svg = document.querySelector('#svg');
+	const svgPoint = (elem, x, y) => {
+		const p = svg.createSVGPoint();
+		p.x = x;
+		p.y = y;
+		return p.matrixTransform(elem.getScreenCTM().inverse());
+	};
+	let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+	const start = svgPoint(svg, e.clientX, e.clientY);
+
+	const onDrawProgress = (e) => {
+		const p = svgPoint(svg, e.clientX, e.clientY);
+		const w = Math.abs(p.x - start.x);
+		const h = Math.abs(p.y - start.y);
+		if (p.x > start.x) {
+			p.x = start.x;
+		}
+	
+		if (p.y > start.y) {
+			p.y = start.y;
+		}
+	
+		rect.setAttributeNS(null, 'x', p.x);
+		rect.setAttributeNS(null, 'y', p.y);
+		rect.setAttributeNS(null, 'width', w);
+		rect.setAttributeNS(null, 'height', h);
+		svg.appendChild(rect);
+	};
+	const onDrawEnd = (e) => {
+		document.removeEventListener(EVENT_DRAW_BEGIN, onDrawBegin);
+		document.removeEventListener(EVENT_DRAW_PROGRESS, onDrawProgress);
+		document.removeEventListener(EVENT_DRAW_END, onDrawEnd);
+
+		svg.style.cursor = 'auto';
+	};
+
+	document.addEventListener(EVENT_DRAW_PROGRESS, onDrawProgress);
+	document.addEventListener(EVENT_DRAW_END, onDrawEnd);
+};
+
+window.onload = () => {
 	// document.addEventListener('touchstart', _touchstartEvent, {passive: false});
 	// document.addEventListener('touchmove', _touchmoveEvent, false);
 	// document.addEventListener('touchend', _touchendEvent, false);
@@ -117,6 +73,7 @@ window.onload = () => {
   });
 
 	document.getElementById("actionTest").addEventListener("click", (e) => {
-		alert("click actionTest");
+		document.querySelector('#svg').style.cursor = 'crosshair';
+		document.addEventListener(EVENT_DRAW_BEGIN, onDrawBegin);
   });
 };
