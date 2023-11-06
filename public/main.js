@@ -14,6 +14,11 @@ function _touchendEvent(e) {
 	isTouchEvent = false;
 }
 
+function _preventDefault(e) {
+	console.log('_preventDefault e =', e);
+	e.preventDefault();
+}
+
 // const EVENT_DRAW_DOWN = 'mousedown';
 // const EVENT_DRAW_MOVE = 'mousemove';
 // const EVENT_DRAW_UP = 'mouseup';
@@ -64,6 +69,7 @@ const onDrawDown = (e) => {
 		document.removeEventListener(EVENT_DRAW_UP, onDrawUp);
 		document.removeEventListener(EVENT_DRAW_CANCEL, onDrawCancel);
 
+		document.removeEventListener("touchstart", _preventDefault);
 		svg.style.cursor = 'auto';
 	};
 	const onDrawCancel = (e) => {
@@ -82,6 +88,7 @@ const onDrawDown = (e) => {
 	document.addEventListener(EVENT_DRAW_CANCEL, onDrawCancel);
 };
 
+
 window.onload = () => {
 	// document.addEventListener('touchstart', _touchstartEvent, {passive: false});
 	// document.addEventListener('touchmove', _touchmoveEvent, false);
@@ -93,6 +100,7 @@ window.onload = () => {
 
 	document.getElementById("actionTest").addEventListener("click", (e) => {
 		document.querySelector('#svg').style.cursor = 'crosshair';
+		document.addEventListener("touchstart", _preventDefault, {passive: false});
 		document.addEventListener(EVENT_DRAW_DOWN, onDrawDown);
   });
 };
