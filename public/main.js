@@ -14,15 +14,18 @@ function _touchendEvent(e) {
 	isTouchEvent = false;
 }
 
-// const EVENT_DRAW_BEGIN = 'mousedown';
-// const EVENT_DRAW_PROGRESS = 'mousemove';
-// const EVENT_DRAW_END = 'mouseup';
+// const EVENT_DRAW_DOWN = 'mousedown';
+// const EVENT_DRAW_MOVE = 'mousemove';
+// const EVENT_DRAW_UP = 'mouseup';
 
-const EVENT_DRAW_BEGIN = 'pointerdown';
-const EVENT_DRAW_PROGRESS = 'pointermove';
-const EVENT_DRAW_END = 'pointerup';
+const EVENT_DRAW_DOWN = 'pointerdown';
+const EVENT_DRAW_MOVE = 'pointermove';
+const EVENT_DRAW_UP = 'pointerup';
+const EVENT_DRAW_CANCEL = 'pointercancel';
 
-const onDrawBegin = (e) => {	
+const onDrawDown = (e) => {	
+	console.log('onDrawDown e=', e);
+
 	const svg = document.querySelector('#svg');
 	const svgPoint = (elem, x, y) => {
 		const p = svg.createSVGPoint();
@@ -33,7 +36,9 @@ const onDrawBegin = (e) => {
 	let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 	const start = svgPoint(svg, e.clientX, e.clientY);
 
-	const onDrawProgress = (e) => {
+	const onDrawMove = (e) => {
+		console.log('onDrawMove e=', e);
+
 		const p = svgPoint(svg, e.clientX, e.clientY);
 		const w = Math.abs(p.x - start.x);
 		const h = Math.abs(p.y - start.y);
@@ -51,16 +56,30 @@ const onDrawBegin = (e) => {
 		rect.setAttributeNS(null, 'height', h);
 		svg.appendChild(rect);
 	};
-	const onDrawEnd = (e) => {
-		document.removeEventListener(EVENT_DRAW_BEGIN, onDrawBegin);
-		document.removeEventListener(EVENT_DRAW_PROGRESS, onDrawProgress);
-		document.removeEventListener(EVENT_DRAW_END, onDrawEnd);
+	const onDrawUp = (e) => {
+		console.log('onDrawUp e=', e);
+
+		document.removeEventListener(EVENT_DRAW_DOWN, onDrawDown);
+		document.removeEventListener(EVENT_DRAW_MOVE, onDrawMove);
+		document.removeEventListener(EVENT_DRAW_UP, onDrawUp);
+		document.removeEventListener(EVENT_DRAW_CANCEL, onDrawCancel);
+
+		svg.style.cursor = 'auto';
+	};
+	const onDrawCancel = (e) => {
+		console.log('onDrawCancel e=', e);
+
+		document.removeEventListener(EVENT_DRAW_DOWN, onDrawDown);
+		document.removeEventListener(EVENT_DRAW_MOVE, onDrawMove);
+		document.removeEventListener(EVENT_DRAW_UP, onDrawUp);
+		document.removeEventListener(EVENT_DRAW_CANCEL, onDrawCancel);
 
 		svg.style.cursor = 'auto';
 	};
 
-	document.addEventListener(EVENT_DRAW_PROGRESS, onDrawProgress);
-	document.addEventListener(EVENT_DRAW_END, onDrawEnd);
+	document.addEventListener(EVENT_DRAW_MOVE, onDrawMove);
+	document.addEventListener(EVENT_DRAW_UP, onDrawUp);
+	document.addEventListener(EVENT_DRAW_CANCEL, onDrawCancel);
 };
 
 window.onload = () => {
@@ -74,6 +93,6 @@ window.onload = () => {
 
 	document.getElementById("actionTest").addEventListener("click", (e) => {
 		document.querySelector('#svg').style.cursor = 'crosshair';
-		document.addEventListener(EVENT_DRAW_BEGIN, onDrawBegin);
+		document.addEventListener(EVENT_DRAW_DOWN, onDrawDown);
   });
 };
